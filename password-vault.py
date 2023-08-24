@@ -1,4 +1,6 @@
 import mysql.connector
+import string
+import random
 from cryptography.fernet import Fernet
 
 def main():
@@ -22,7 +24,7 @@ def main():
     create_table_query = """
     CREATE TABLE IF NOT EXISTS passwords (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        website VARCHAR(255) NOT NULL,
+        website VARCHAR(255) NOT NULL UNIQUE,
         encrypted_password TEXT NOT NULL
     )
     """
@@ -47,7 +49,18 @@ def main():
 
     def add_password():
         website = input("\nEnter the website: ")
-        password = input("Enter the password: ")
+        password = ""
+        choice = int(input("1. Enter your password\n2.Generate strong password: "))
+        if(choice == 2):
+            length = int(input("Enter length (8-16)"))
+            if(8<= length <= 16):
+                password = generate_strong_password(length=length)
+                print(f"Password for {website} generated: {password}")
+            else:
+                print("Invalid length")
+                add_password()
+        else:
+            password = input("Enter the password: ")
         encrypted_password = cipher_suite.encrypt(password.encode())
 
         insert_password_query = "INSERT INTO passwords (website, encrypted_password) VALUES (%s, %s) ON DUPLICATE KEY UPDATE encrypted_password = %s"
@@ -68,6 +81,11 @@ def main():
         else:
             print(f"No password found for {website}")
 
+    def generate_strong_password(length=12):
+        characters = string.ascii_letters + string.digits + string.punctuation
+        password = ''.join(random.choice(characters) for _ in range(length))
+        return password
+
     def login():
         entered_username = input("Enter your username: ")
         entered_master_password = input("Enter your master password: ")
@@ -79,9 +97,9 @@ def main():
             stored_master_password = cipher_suite.decrypt(bytes(row[0], 'utf-8')).decode()
 
             if entered_master_password == stored_master_password:
-                print("\nLogin successful!\n")
+                print("\nLogin successful!")
                 while True:
-                    print("Options:")
+                    print("\nOptions:")
                     print("1. Add Password")
                     print("2. View Password")
                     print("3. Quit")
