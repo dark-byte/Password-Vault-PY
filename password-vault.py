@@ -8,13 +8,15 @@ def main():
 
     with open('key.txt', 'r') as file:
         key = file.read()
+    with open('db_password.txt', 'r') as file2:
+        db_password = file2.read()
         
     cipher_suite = Fernet(key)
 
     db_config = {
         "host": "localhost",
         "user": "root",
-        "password": "AdrishMitra@4",
+        "password": db_password,
         "database": "password_vault"
     }
 
@@ -83,7 +85,10 @@ def main():
 
     def generate_strong_password(length=12):
         characters = string.ascii_letters + string.digits + string.punctuation
-        password = ''.join(random.choice(characters) for _ in range(length))
+        password = ""
+        # password = ''.join(random.choice(characters) for _ in range(length))
+        for i in range(length):
+            password += random.choice(characters)
         return password
 
     def login():
